@@ -1,5 +1,5 @@
 ﻿using System;
-using System.IO;
+using System.IO.Abstractions;
 using System.Text.RegularExpressions;
 
 namespace DirectoryTraversal
@@ -8,35 +8,23 @@ namespace DirectoryTraversal
     {
         static void Main(string[] args)
         {
+            var fs = new FileSystem();
+
             if (args.Length != 1)
             {
                 Environment.Exit(-1);
             }
 
-            var startPath = Path.GetFullPath(NormalizeUserHomePath(args[0]));
+            var startPath = fs.Path.GetFullPath(NormalizeUserHomePath(args[0]));
 
-            if (!Directory.Exists(startPath))
+            if (!fs.Directory.Exists(startPath))
             {
                 return;
             }
 
-            TraverseDirectory(startPath, GoatifyPath);
+            fs.Directory.PerformAction(startPath, GoatifyPath);
         }
 
-        private static void TraverseDirectory(string path, Action<string> action)
-        {
-            action.Invoke(path);
-
-            foreach (var file in Directory.GetFiles(path))
-            {
-                action.Invoke(file);
-            }
-
-            foreach (var dir in Directory.GetDirectories(path))
-            {
-                TraverseDirectory(dir, action);
-            }
-        }
 
         private static string NormalizeUserHomePath(string path)
         {
